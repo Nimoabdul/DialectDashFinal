@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Platform, StatusBar, Animated, Modal } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Platform, StatusBar, Animated, Modal, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, STYLES } from '../config/theme.js';
 
@@ -44,9 +44,11 @@ export default function GameScreen({ route, navigation }) {
   const timerAnim = useRef(new Animated.Value(1)).current;
   const currentAnimation = useRef(null);
 
-  // Grab the user to display their initial
+  // --- GRAB USER DATA FOR THE UI ---
   const user = auth.currentUser;
-  const firstInitial = user?.displayName ? user.displayName.charAt(0).toUpperCase() : 'E'; // 'E' for Explorer fallback
+  const displayName = user?.displayName || 'Explorer';
+  const firstInitial = displayName.charAt(0).toUpperCase();
+  const profilePic = user?.photoURL; // Grab the saved picture URL!
 
   // --- FIREBASE SCORE SAVING ---
   const handleFinalScoreSaving = async (finalScore) => {
@@ -60,7 +62,6 @@ export default function GameScreen({ route, navigation }) {
           currentHigh = docSnap.data().highScore;
         }
         
-        // Save score to Firebase if it's a new record!
         if (finalScore > currentHigh) {
           await setDoc(docRef, { highScore: finalScore }, { merge: true });
         }
@@ -114,7 +115,6 @@ export default function GameScreen({ route, navigation }) {
     }
   };
 
-  // --- THE MASTER RANDOMIZER ---
   const getRandomGameType = () => {
     const types = isMath 
       ? ['math'] 
@@ -160,7 +160,6 @@ export default function GameScreen({ route, navigation }) {
     }
   };
 
-  // --- OVERLAYS & UI ---
   if (lessonComplete || gameOver) {
     return (
       <SafeAreaView style={styles.overlayContainer}>
@@ -248,8 +247,18 @@ export default function GameScreen({ route, navigation }) {
       </View>
 
       <View style={styles.statsRow}>
-        <View style={styles.avatar}><Text style={styles.avatarText}>{firstInitial}</Text></View>
+        {/* --- DYNAMIC PROFILE PICTURE & INITIAL --- */}
+        {profilePic ? (
+          <Image source={{ uri: profilePic }} style={styles.avatarImage} />
+        ) : (
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{firstInitial}</Text>
+          </View>
+        )}
+        
         <View style={styles.progressWrapper}>
+          {/* --- USERNAME DISPLAY --- */}
+          <Text style={styles.playerName}>{displayName}</Text>
           <View style={styles.progressBarBackground}>
              <View style={[styles.progressBarFill, { width: `${((round-1)/ROUND_GOAL)*100}%` }]} />
           </View>
@@ -300,8 +309,13 @@ const styles = StyleSheet.create({
   topNav: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 10 },
   appTitle: { fontSize: 18, fontWeight: '800', color: COLORS.textDark },
   statsRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, marginBottom: 10 },
-  avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#e0f2fe', justifyContent: 'center', alignItems: 'center' },
-  avatarText: { color: COLORS.primaryBlue, fontWeight: 'bold' },
+  
+  // --- NEW AVATAR STYLES ---
+  avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.primaryBlue, justifyContent: 'center', alignItems: 'center' },
+  avatarImage: { width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: COLORS.primaryBlue },
+  avatarText: { color: '#fff', fontWeight: 'bold', fontSize: 18 },
+  playerName: { fontSize: 12, fontWeight: 'bold', color: COLORS.lightGrey, marginBottom: 4, marginLeft: 2 },
+  
   progressWrapper: { flex: 1, marginHorizontal: 15 },
   progressBarBackground: { height: 10, backgroundColor: '#f3f4f6', borderRadius: 5, overflow: 'hidden' },
   progressBarFill: { height: '100%', backgroundColor: COLORS.successGreen },

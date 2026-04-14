@@ -40,7 +40,11 @@ export default function AuthScreen({ navigation }) {
 
   const handleAuth = async () => {
     if (!email || !password || (!isLoginMode && !name)) {
-      Alert.alert('Hold up!', 'Please fill in all the required fields.');
+      if (Platform.OS === 'web') {
+        window.alert('Please fill in all the required fields.');
+      } else {
+        Alert.alert('Hold up!', 'Please fill in all the required fields.');
+      }
       return;
     }
 
@@ -57,7 +61,13 @@ export default function AuthScreen({ navigation }) {
         });
       }
     } catch (error) {
-      Alert.alert('Authentication Error', error.message);
+      console.log("🔥 FIREBASE ERROR: ", error.message);
+      // This forces the web browser to show the exact error!
+      if (Platform.OS === 'web') {
+        window.alert("Authentication Error: " + error.message);
+      } else {
+        Alert.alert('Authentication Error', error.message);
+      }
     } finally {
       setLoading(false);
     }
