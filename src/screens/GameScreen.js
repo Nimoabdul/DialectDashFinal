@@ -6,12 +6,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../config/firebase.js';
 
-// --- MINIGAME IMPORTS (ALL 14 GAMES PLUGGED IN) ---
+// --- MINIGAME IMPORTS ---
 import ShapesMinigame from '../minigames/ShapesMinigame.js';
 import ColorsMinigame from '../minigames/ColorsMinigame.js';
 import AnimalsMinigame from '../minigames/AnimalsMinigame.js';
 import MathMinigame from '../minigames/MathMinigame.js';
-import EvenOddMinigame from '../minigames/EvenOddMinigame.js'; 
+import EvenOddMinigame from '../minigames/EvenOddMinigame.js';
 import FoodSortMinigame from '../minigames/FoodSortMinigame.js';
 import CountObjectsMinigame from '../minigames/CountObjectsMinigame.js';
 import ComparisonMinigame from '../minigames/ComparisonMinigame.js';
@@ -37,7 +37,6 @@ export default function GameScreen({ route, navigation }) {
   const [isPaused, setIsPaused] = useState(false);
   const [currentVocab, setCurrentVocab] = useState([]);
   
-  // Start with the correct type of game based on what they clicked on the Home Screen
   const [gameType, setGameType] = useState(isMath ? 'math' : 'colors');
 
   const ROUND_GOAL = 10; 
@@ -109,11 +108,10 @@ export default function GameScreen({ route, navigation }) {
     else { if (currentAnimation.current) currentAnimation.current.stop(); setIsPaused(true); }
   };
 
-  // --- SEPARATING THE MATH GAMES FROM THE LANGUAGE GAMES ---
   const getRandomGameType = () => {
     const types = isMath 
-      ? ['math', 'evenOdd'] // <-- Math games go here!
-      : ['shapes', 'colors', 'animals', 'foodSort', 'shoppingList', 'directions', 'countObjects', 'comparison', 'weather', 'transport', 'places', 'bodyParts']; // <-- Language games go here!
+      ? ['math', 'evenOdd']
+      : ['shapes', 'colors', 'animals', 'foodSort', 'shoppingList', 'directions', 'countObjects', 'comparison', 'weather', 'transport', 'places', 'bodyParts'];
     return types[Math.floor(Math.random() * types.length)];
   };
 
@@ -194,6 +192,7 @@ export default function GameScreen({ route, navigation }) {
         </View>
       </Modal>
 
+      {/* --- FLOATING MODERN HEADER (Hearts Removed!) --- */}
       <View style={styles.headerPill}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="close" size={26} color="#4B5563" />
@@ -203,11 +202,6 @@ export default function GameScreen({ route, navigation }) {
           <View style={styles.headerProgressBarBg}>
              <View style={[styles.headerProgressBarFill, { width: `${((round-1)/ROUND_GOAL)*100}%` }]} />
           </View>
-        </View>
-
-        <View style={styles.livesWrapper}>
-          <Ionicons name="heart" size={24} color="#EF4444" />
-          <Text style={styles.livesText}>{lives}</Text>
         </View>
       </View>
 
@@ -260,6 +254,22 @@ export default function GameScreen({ route, navigation }) {
           {gameType === 'evenOdd' && <EvenOddMinigame onSuccess={handleSuccess} onFailure={handleFailure} />}
         </View>
       </View>
+
+      {/* --- NEW BOTTOM HEALTH BAR --- */}
+      <View style={styles.bottomHealthBar}>
+        <View style={styles.healthPill}>
+          {[...Array(4)].map((_, i) => (
+            <Ionicons 
+              key={i} 
+              name={i < lives ? "heart" : "heart-outline"} 
+              size={34} 
+              color={i < lives ? "#EF4444" : "#FECACA"} 
+              style={{ marginHorizontal: 6 }} 
+            />
+          ))}
+        </View>
+      </View>
+
     </SafeAreaView>
   );
 }
@@ -268,11 +278,9 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB', paddingTop: Platform.OS === 'android' ? 40 : 10 },
   headerPill: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', marginHorizontal: 20, padding: 12, borderRadius: 25, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 5, marginBottom: 15 },
   backButton: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F3F4F6', justifyContent: 'center', alignItems: 'center' },
-  headerProgressWrapper: { flex: 1, marginHorizontal: 15 },
+  headerProgressWrapper: { flex: 1, marginLeft: 15, marginRight: 5 },
   headerProgressBarBg: { height: 14, backgroundColor: '#E5E7EB', borderRadius: 7, overflow: 'hidden' },
   headerProgressBarFill: { height: '100%', backgroundColor: '#3B82F6', borderRadius: 7 },
-  livesWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FEE2E2', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
-  livesText: { fontSize: 16, fontWeight: '800', color: '#EF4444', marginLeft: 4 },
 
   dashboardRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 25, marginBottom: 15 },
   profileSection: { flexDirection: 'row', alignItems: 'center' },
@@ -288,9 +296,13 @@ const styles = StyleSheet.create({
   timerWrapper: { height: 16, backgroundColor: '#E5E7EB', marginHorizontal: 25, marginBottom: 20, borderRadius: 8, overflow: 'hidden' },
   timerBar: { height: '100%', borderRadius: 8 },
   
-  gameCardWrapper: { flex: 1, paddingHorizontal: 20, paddingBottom: 20 },
+  gameCardWrapper: { flex: 1, paddingHorizontal: 20, paddingBottom: 15 },
   gameCard: { flex: 1, backgroundColor: '#fff', borderRadius: 30, padding: 20, borderWidth: 2, borderColor: '#E5E7EB', shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 5 },
   
+  /* --- NEW BOTTOM HEALTH BAR STYLES --- */
+  bottomHealthBar: { alignItems: 'center', paddingBottom: Platform.OS === 'ios' ? 10 : 25 },
+  healthPill: { flexDirection: 'row', backgroundColor: '#fff', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 30, borderWidth: 2, borderColor: '#FEE2E2', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 5 },
+
   overlayContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F3F4F6' },
   endCard: { width: '85%', backgroundColor: '#fff', borderRadius: 40, padding: 30, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 10 },
   iconWrapper: { width: 120, height: 120, borderRadius: 60, justifyContent: 'center', alignItems: 'center', marginBottom: 20 },
